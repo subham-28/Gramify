@@ -25,6 +25,8 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+RUN python -m spacy download en_core_web_lg
+
 # Expose the port FastAPI will run on
 EXPOSE 8080
 
