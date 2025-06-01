@@ -1,20 +1,22 @@
-# Use Node.js 18 Alpine base image
-FROM node:18-alpine
+# Stage 1: Build frontend
+FROM node:18-alpine as frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-# Set working directory inside container
+# Stage 2: Backend + serve frontend
+FROM node:18-alpine
 WORKDIR /app
 
-# Copy package.json and package-lock.json first for caching dependencies
+# Copy backend files and install dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
-
-# Copy all project files into container
 COPY . .
 
-# Expose port 8080 (your app listens here)
-EXPOSE 8080
+# Copy frontend build output to /app/public
+COPY --from=frontend-builder /app/frontend/dist ./public
 
-# Start the server
+EXPOSE 8080
 CMD ["node", "server.js"]
