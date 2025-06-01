@@ -1,15 +1,20 @@
-FROM node:18
+# Use Node.js 18 Alpine base image
+FROM node:18-alpine
 
+# Set working directory inside container
 WORKDIR /app
 
-# Copy and install backend dependencies
+# Copy package.json and package-lock.json first for caching dependencies
 COPY package*.json ./
+
+# Install dependencies
 RUN npm install
 
-# Copy backend code
+# Copy all project files into container
 COPY . .
 
-# Expose port for Cloud Run
+# Expose port 8080 (your app listens here)
 EXPOSE 8080
 
+# Start the server
 CMD ["node", "server.js"]
