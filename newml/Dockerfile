@@ -1,10 +1,6 @@
 # Base image with Python
 FROM python:3.10-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PORT=8080
 
 # Set working directory
 WORKDIR /app
