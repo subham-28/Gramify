@@ -12,17 +12,20 @@ WORKDIR /app
 # Copy all project files
 COPY . .
 
-# Install OS dependencies
+# Install OS dependencies, including build essentials and portaudio dev for pyaudio
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
+    make \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
     ffmpeg \
- && rm -rf /var/lib/apt/lists/*
+    portaudio19-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Upgrade pip and install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
