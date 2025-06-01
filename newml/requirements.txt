@@ -20,3 +20,4 @@ scikit-learn
 joblib
 wheel
 gensim
+google-cloud-storage
