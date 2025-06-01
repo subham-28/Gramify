@@ -8,16 +8,31 @@ import pandas as pd
 import numpy as np
 import pymongo
 from pymongo.errors import ConnectionFailure
+from google.cloud import storage
 import os
 from config import MONGO_URI
 
 _ft_model = None  # private global cache
 
+def download_fasttext_from_gcs():
+    local_path = "/tmp/fasttext.vec"  # Cloud Run allows writing to /tmp
+    if not os.path.exists(local_path):
+        print("⬇️ Downloading fastText model from GCS...")
+        bucket_name = "gramify-fasttext"  # ✅ Replace with your actual bucket name
+        blob_path = "models/crawl-300d-2M.vec"  # ✅ Replace with your actual object path
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_path)
+        blob.download_to_filename(local_path)
+        print("✅ Downloaded fastText model to /tmp.")
+    return local_path
+
 def get_fasttext_model():
     global _ft_model
     if _ft_model is None:
+        ft_path = download_fasttext_from_gcs()
         print("🔄 Loading fastText model...")
-        ft_path = os.path.join(r"C:\100 Days of ML\Gramify\new\crawl-300d-2M.vec")
         _ft_model = KeyedVectors.load_word2vec_format(ft_path, binary=False)
         print("✅ fastText model loaded.")
     return _ft_model
