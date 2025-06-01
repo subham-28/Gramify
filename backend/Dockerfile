@@ -1,25 +1,22 @@
-# 1. Base image
-FROM node:18-alpine
+# Stage 1: Build frontend
+FROM node:18-alpine as frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ .
+RUN npm run build
 
-# 2. Set working directory
+# Stage 2: Setup backend and serve frontend
+FROM node:18-alpine
 WORKDIR /app
 
-# 3. Copy backend files
+# Copy backend code
+COPY package*.json ./
+RUN npm install
 COPY . .
 
-# 4. Install backend dependencies
-RUN npm install
+# Copy frontend build to public folder
+RUN mkdir -p public && cp -r frontend/dist/* public/
 
-# 5. Build frontend
-WORKDIR /app/frontend
-RUN npm install && npm run build
-
-# 6. Move frontend build to backend's public folder
-RUN mkdir -p /app/public && cp -r dist/* /app/public/
-
-# 7. Switch back to backend root
-WORKDIR /app
-
-# 8. Expose port and run server
 EXPOSE 8080
 CMD ["node", "server.js"]
