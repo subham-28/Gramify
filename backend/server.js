@@ -1,10 +1,14 @@
-const express = require("express");
-const cors = require("cors");
-const axios = require("axios");
-const multer = require("multer");
-const FormData = require("form-data");
-const fs = require("fs");
-const path = require("path");
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import multer from "multer";
+import FormData from "form-data";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
@@ -128,6 +132,6 @@ app.post("/voice-input", upload.single("file"), async (req, res) => {
 
 // ✅ Start Server
 const port = 8080;
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Server running on port ${port}`);
 });
