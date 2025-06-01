@@ -21,3 +21,4 @@ joblib
 wheel
 gensim
 google-cloud-storage
+scipy==1.10.1
