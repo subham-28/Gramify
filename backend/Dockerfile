@@ -1,22 +1,15 @@
-# Stage 1: Build frontend
-FROM node:18-alpine as frontend-builder
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm install
-COPY frontend/ .
-RUN npm run build
+FROM node:18
 
-# Stage 2: Setup backend and serve frontend
-FROM node:18-alpine
 WORKDIR /app
 
-# Copy backend code
+# Copy and install backend dependencies
 COPY package*.json ./
 RUN npm install
+
+# Copy backend code
 COPY . .
 
-# Copy frontend build to public folder
-COPY --from=frontend-builder /app/frontend/dist ./public
-
+# Expose port for Cloud Run
 EXPOSE 8080
+
 CMD ["node", "server.js"]
