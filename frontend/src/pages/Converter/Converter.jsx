@@ -17,7 +17,7 @@ function Converter() {
         const response = await axios.post(
           "https://gradientgang.onrender.com/convert",
           {
-            recipe_text: inputText,
+            recipe_text: inputText, confirm: false, confirmed_ingredient: null,
           }
         );
         setResult(response.data.result);
