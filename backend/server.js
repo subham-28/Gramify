@@ -13,6 +13,7 @@ import { connectDB } from "./config/db.js";
 import forumRoute from "./routes/forumRoute.js";
 import authRoute from "./routes/authRoute.js";
 import voiceRoute from "./routes/voiceRoute.js"; // ✅ Import voice route
+import imageRoute from "./routes/imageRoute.js";
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ connectDB();
 app.use("/api/forum", forumRoute);
 app.use("/api/user", authRoute);
 app.use("/api/voice", voiceRoute); // ✅ Mount voice route
+app.use("/api/image", imageRoute);
 
 // ✅ FastAPI Proxy Routes
 app.post("/convert", async (req, res) => {
@@ -87,27 +89,27 @@ app.post("/ingredients", async (req, res) => {
   }
 });
 
-app.post("/extract-ingredients", upload.single("file"), async (req, res) => {
-  const filePath = req.file.path;
-  const formData = new FormData();
-  formData.append("file", fs.createReadStream(filePath));
+// app.post("/extract-ingredients", upload.single("file"), async (req, res) => {
+//   const filePath = req.file.path;
+//   const formData = new FormData();
+//   formData.append("file", fs.createReadStream(filePath));
 
-  try {
-    const response = await axios.post(`${FASTAPI_BASE_URL}/extract-ingredients/`, formData, {
-      headers: formData.getHeaders(),
-    });
-    res.json(response.data);
-  } catch (error) {
-    console.error("❌ Error in /extract-ingredients:", error.message, error.response?.data);
-    res.status(500).json({ error: "Failed to extract and convert from image." });
-  } finally {
-    try {
-      fs.unlinkSync(filePath);
-    } catch (err) {
-      console.warn("⚠️ Could not delete temp file:", err.message);
-    }
-  }
-});
+//   try {
+//     const response = await axios.post(`${FASTAPI_BASE_URL}/extract-ingredients/`, formData, {
+//       headers: formData.getHeaders(),
+//     });
+//     res.json(response.data);
+//   } catch (error) {
+//     console.error("❌ Error in /extract-ingredients:", error.message, error.response?.data);
+//     res.status(500).json({ error: "Failed to extract and convert from image." });
+//   } finally {
+//     try {
+//       fs.unlinkSync(filePath);
+//     } catch (err) {
+//       console.warn("⚠️ Could not delete temp file:", err.message);
+//     }
+//   }
+// });
 
 // ✅ Serve static frontend (for Docker/Production)
 app.use(express.static(path.join(__dirname, "public")));
