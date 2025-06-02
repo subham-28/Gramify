@@ -8,10 +8,11 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
-// Your MongoDB config and routes
+// MongoDB config and custom routes
 import { connectDB } from "./config/db.js";
 import forumRoute from "./routes/forumRoute.js";
 import authRoute from "./routes/authRoute.js";
+import voiceRoute from "./routes/voiceRoute.js"; // ✅ Import voice route
 
 dotenv.config();
 
@@ -29,9 +30,10 @@ app.use(cors());
 // ✅ Connect to MongoDB
 connectDB();
 
-// ✅ API routes - Your custom Node.js routes
+// ✅ API routes
 app.use("/api/forum", forumRoute);
 app.use("/api/user", authRoute);
+app.use("/api/voice", voiceRoute); // ✅ Mount voice route
 
 // ✅ FastAPI Proxy Routes
 app.post("/convert", async (req, res) => {
@@ -107,29 +109,7 @@ app.post("/extract-ingredients", upload.single("file"), async (req, res) => {
   }
 });
 
-app.post("/voice-input", upload.single("file"), async (req, res) => {
-  const filePath = req.file.path;
-  const formData = new FormData();
-  formData.append("file", fs.createReadStream(filePath));
-
-  try {
-    const response = await axios.post(`${FASTAPI_BASE_URL}/voice-input/`, formData, {
-      headers: formData.getHeaders(),
-    });
-    res.json(response.data);
-  } catch (error) {
-    console.error("❌ Error in /voice-input:", error.message, error.response?.data);
-    res.status(500).json({ error: "Failed to process voice input." });
-  } finally {
-    try {
-      fs.unlinkSync(filePath);
-    } catch (err) {
-      console.warn("⚠️ Could not delete temp file:", err.message);
-    }
-  }
-});
-
-// ✅ Static Frontend Support (for Docker/Production)
+// ✅ Serve static frontend (for Docker/Production)
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
@@ -141,7 +121,7 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ✅ Start the server
+// ✅ Start server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
