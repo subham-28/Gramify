@@ -6,32 +6,34 @@ import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+// Your MongoDB config and routes
+import { connectDB } from "./config/db.js";
+import forumRoute from "./routes/forumRoute.js";
+import authRoute from "./routes/authRoute.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
+const FASTAPI_BASE_URL = "https://gradientgang-279556857326.asia-south1.run.app";
 
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-const FASTAPI_BASE_URL = "https://gradientgang-279556857326.asia-south1.run.app";
+// ✅ Connect to MongoDB
+connectDB();
 
-// ✅ Serve static frontend files from build output (assumes ./public exists after Docker build)
-app.use(express.static(path.join(__dirname, "public")));
+// ✅ API routes - Your custom Node.js routes
+app.use("/api/forum", forumRoute);
+app.use("/api/user", authRoute);
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// Support SPA routing
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// 🔁 API Routes (proxy to FastAPI)
-
+// ✅ FastAPI Proxy Routes
 app.post("/convert", async (req, res) => {
   try {
     const response = await axios.post(`${FASTAPI_BASE_URL}/convert/`, req.body);
@@ -92,13 +94,11 @@ app.post("/extract-ingredients", upload.single("file"), async (req, res) => {
     const response = await axios.post(`${FASTAPI_BASE_URL}/extract-ingredients/`, formData, {
       headers: formData.getHeaders(),
     });
-
     res.json(response.data);
   } catch (error) {
     console.error("❌ Error in /extract-ingredients:", error.message, error.response?.data);
     res.status(500).json({ error: "Failed to extract and convert from image." });
   } finally {
-    // Safely remove temp file
     try {
       fs.unlinkSync(filePath);
     } catch (err) {
@@ -116,7 +116,6 @@ app.post("/voice-input", upload.single("file"), async (req, res) => {
     const response = await axios.post(`${FASTAPI_BASE_URL}/voice-input/`, formData, {
       headers: formData.getHeaders(),
     });
-
     res.json(response.data);
   } catch (error) {
     console.error("❌ Error in /voice-input:", error.message, error.response?.data);
@@ -130,8 +129,20 @@ app.post("/voice-input", upload.single("file"), async (req, res) => {
   }
 });
 
-// ✅ Start Server
-const port = 8080;
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Server running on port ${port}`);
+// ✅ Static Frontend Support (for Docker/Production)
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Support frontend routing in SPA
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// ✅ Start the server
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
